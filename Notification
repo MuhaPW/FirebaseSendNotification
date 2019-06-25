@@ -1,0 +1,126 @@
+import android.content.Context;
+import android.os.AsyncTask;
+import android.widget.Toast;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+
+public class Notification {
+
+    /**
+     * Документация https://firebase.google.com/docs/cloud-messaging/xmpp-server-ref
+     */
+
+    private String to;
+    private String messageHTTP = "{";
+
+    private HashMap<String, String>notifications = new HashMap<>();
+    private HashMap<String, String>data = new HashMap<>();
+
+    private Context context;
+
+    public Notification(String to, Context context) {
+        this.to = to;
+        this.context = context;
+    }
+
+    public void send(){
+        if (!notifications.isEmpty()) messageHTTP = messageHTTP + buildNotifications();
+        if (!data.isEmpty()) messageHTTP = messageHTTP + buildData();
+
+        messageHTTP = messageHTTP + " \"to\":\"" + to + "\"";
+        messageHTTP = messageHTTP + "}";
+
+        new AsyncReques().execute(messageHTTP);
+    }
+
+    public String buildNotifications(){
+        String text_notify = "\"notification\":{";
+        boolean isFirstObject = true;
+
+        for (String key : notifications.keySet()){
+            if (isFirstObject){
+                text_notify = text_notify + "\"" + key + "\":" + "\"" + notifications.get(key) + "\"";
+                isFirstObject = false;
+            }else {
+                text_notify = text_notify + ", \"" + key + "\":" + "\"" + notifications.get(key) + "\"";
+            }
+        }
+
+        return text_notify + "},";
+    }
+
+    public String buildData(){
+        String text_data = " \"data\":{";
+        boolean isFirstObject = true;
+
+        for (String key : data.keySet()){
+            if (isFirstObject){
+                text_data = text_data + "\"" + key + "\":" + "\"" + data.get(key) + "\"";
+                isFirstObject = false;
+            }else {
+                text_data = text_data + ", \"" + key + "\":" + "\"" + data.get(key) + "\"";
+            }
+        }
+
+        return text_data + "},";
+    }
+
+    public void addParameter(String key, String value){
+        messageHTTP = messageHTTP + " \"" + key + "\":\"" + value + "\",";
+    }
+
+    class AsyncReques extends AsyncTask<String, Void, Integer> {
+
+        @Override
+        protected Integer doInBackground(String... strings) {
+            int responseCode = 0;
+
+            try {
+                responseCode = sendNotification(strings[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return responseCode;
+        }
+
+        @Override
+        protected void onPostExecute(Integer responseCode) {
+            super.onPostExecute(responseCode);
+
+            Toast.makeText(context, "Успешно!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public int sendNotification(String input) throws IOException {
+        final String API_KEY = "AAAArTv6Ivo:APA91bG8jhWkSpU9dMoFJATi9O1IHMRVVX6GCmX4zjIu7G_p6E7Skdvzwo4QmjW6u8oEQ9Glohkut4rmdkqrkhKiXH-Re8ShyFDbHRpc2DcC0lJTmWINpfYbUFviZ022R5QNVXAAicPf";
+
+        URL url = new URL("https://fcm.googleapis.com/fcm/send");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "key=" + API_KEY);
+
+        OutputStream outputStream = conn.getOutputStream();
+        outputStream.write(input.getBytes());
+        outputStream.flush();
+        outputStream.close();
+
+        int responseCode = conn.getResponseCode();
+
+        return responseCode;
+    }
+
+    public void addNotifications(String key, String value){
+        notifications.put(key, value);
+    }
+
+    public void addData(String key, String value){
+        data.put(key, value);
+    }
+}
