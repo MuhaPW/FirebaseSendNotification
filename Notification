@@ -97,7 +97,7 @@ public class Notification {
     }
 
     public int sendNotification(String input) throws IOException {
-        final String API_KEY = "AAAArTv6Ivo:APA91bG8jhWkSpU9dMoFJATi9O1IHMRVVX6GCmX4zjIu7G_p6E7Skdvzwo4QmjW6u8oEQ9Glohkut4rmdkqrkhKiXH-Re8ShyFDbHRpc2DcC0lJTmWINpfYbUFviZ022R5QNVXAAicPf";
+        final String API_KEY = "";
 
         URL url = new URL("https://fcm.googleapis.com/fcm/send");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
